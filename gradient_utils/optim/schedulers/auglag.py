@@ -370,9 +370,6 @@ class AugLagLR:
         loss: AugLagLossCalculator,
         loss_value: torch.Tensor,
         lagrangian_penalty: torch.Tensor,
-        likelihood: torch.Tensor,
-        graph_prior: torch.Tensor,
-        graph_entropy: torch.Tensor
     ) -> bool:
         """The main update method to take one auglag inner step.
 
@@ -392,11 +389,6 @@ class AugLagLR:
         self._update_loss_tracker(loss_value.detach())
         self._cur_lagrangian_penalty = lagrangian_penalty.detach()
         self.step_counter += 1
-        if self.step_counter % 100 == 0:
-            print(f"Step:{self.step_counter} loss:{loss_value.item():.3f} " +
-                  f"likelihood:{likelihood.item():.3f} dag:{self._cur_lagrangian_penalty.item():.3f} " +
-                  f"graph prior:{graph_prior.item():.3f} graph entropy:{graph_entropy.item():.3f}")
-
         self._check_best_loss()
         return self._is_auglag_converged(optimizer=optimizer, loss=loss)
 
@@ -435,10 +427,7 @@ class AuglagLRCallback(pl.Callback):
             optimizer=optimizer,
             loss=auglag_loss,
             loss_value=outputs["loss"],
-            lagrangian_penalty=outputs["dagness_penalty"],
-            likelihood=outputs['likelihood'],
-            graph_prior=outputs['graph_prior'],
-            graph_entropy=outputs['graph_entropy']
+            lagrangian_penalty=outputs["constraint"],
         )
 
         # Notify trainer to stop if the auglag algorithm has converged
